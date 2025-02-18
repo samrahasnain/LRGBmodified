@@ -30,16 +30,16 @@ class JLModule(nn.Module):
 
     def forward(self, x):
 
-        conv1r, conv2r, conv3r, conv4r, conv5r = self.backbone(x)
+        convr = self.backbone(x)
         print("Backbone Features shape")
-        print("RGB1: ",conv1r.shape)
-        print("RGB2: ",conv2r.shape)
-        print("RGB3: ",conv3r.shape)
-        print("RGB4: ",conv4r.shape)
-        print("RGB5: ",conv5r.shape)
+        print("RGB1: ",convr[1].shape)
+        print("RGB2: ",convr[2].shape)
+        print("RGB3: ",convr[3].shape)
+        print("RGB4: ",convr[4].shape)
+        print("RGB5: ",convr[5].shape)
         
 
-        return conv1r, conv2r, conv3r, conv4r, conv5r
+        return convr[1], convr[2], convr[3], convr[4], convr[5]
 
 class ShuffleChannelAttention(nn.Module):
     def __init__(self, channel=64,reduction=16,kernel_size=3,groups=8):
