@@ -75,81 +75,30 @@ class LDELayer(nn.Module):
     def __init__(self):
         super(LDELayer, self).__init__()
         self.operation_stage_1=nn.Sequential(nn.Conv2d(384,64,kernel_size=7,stride=1,padding=6,dilation=2), nn.ReLU())  
-        self.operation_stage_2=nn.Sequential(nn.Conv2d(384,64,kernel_size=5,stride=1,padding=4,dilation=2), nn.ReLU())
-        self.operation_stage_3=nn.Sequential(nn.Conv2d(384,64,kernel_size=3,stride=1,padding=2,dilation=2), nn.ReLU())
-        self.operation_stage_4=nn.AvgPool2d(4,4)        		
-        self.operation_stage_5=nn.MaxPool2d(4,4)
+
         self.ca_1=ShuffleChannelAttention(channel=576,reduction=16,kernel_size=3,groups=4)
-        self.ca_2=ShuffleChannelAttention(channel=576,reduction=16,kernel_size=3,groups=8)
-        self.ca_3=ShuffleChannelAttention(channel=576,reduction=16,kernel_size=3,groups=16)
-        self.ca_4=ShuffleChannelAttention(channel=576,reduction=16,kernel_size=3,groups=32)
-        self.ca_5=ShuffleChannelAttention(channel=576,reduction=16,kernel_size=3,groups=64)
+
         self.upsample=nn.ConvTranspose2d(576, 64, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.upsample_1=nn.ConvTranspose2d(384, 96, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.conv1x1=nn.Conv2d(576,384,1,1)
         self.last_conv1x1=nn.Conv2d(384,1,1,1)
        
 
-    def forward(self, list_x,list_y):
+    def forward(self, list_x):
         lde_out=[]
         
-        for i in range(len(list_x)):
+        rgb_conv = list_x
+        depth_tran = list_x
+        print("******LDE layer******")
+        print(i,"     ",rgb_conv.shape,depth_tran.shape)
+        rgb_1=self.operation_stage_1(list_x)
+        depth_1=self.upsample(self.ca_1(list_x))
+        rgbd_fusion_1=rgb_1*depth_1
+        print('rgbd_fusion_1',rgbd_fusion_1.shape)  
+        last_out=list_x+self.last_conv1x1(rgbd_fusion_1)
+        print('last',last_out.shape)
         
-            rgb_conv = list_x[i]
-         
-            depth_tran = list_y[i]
-            #print("******LDE layer******")
-            #print(i,"     ",rgb_conv.shape,depth_tran.shape)
-
-        init_stage = 2
-        depth=12
-        fin_stage = depth // 3 + 1
-        for j in range(init_stage, fin_stage):
-            B,_,C=list_y[j].shape
-            #print('j=',j)
-            rgb_1=self.operation_stage_1(list_x[j])
-            #print('rgb_operation_1',rgb_1.shape)
-       
-            rgb_2=self.operation_stage_2(list_x[j])
-            #print('rgb_operation_2',rgb_2.shape)
-            rgb_3=self.operation_stage_3(list_x[j])
-            #print('rgb_operation_3',rgb_3.shape)
-            rgb_4=self.operation_stage_4(list_x[j])
-            #print('rgb_operation_4',rgb_4.shape)
-            rgb_5=self.operation_stage_5(list_x[j])
-            #print('rgb_operation_5',rgb_5.shape)
-            x=list_y[j]
-            x_r = x[:, 1:].transpose(1, 2).reshape(B, C, 20,20)
-            #print("*******tran in lde*****")
-            #print('initial tran shape',x_r.shape)
-            depth_1=self.upsample(self.ca_1(x_r))
-            #print('depth_1',depth_1.shape)
-            depth_2=self.upsample(self.ca_2(x_r))
-            #print('depth_2',depth_2.shape)
-            depth_3=self.upsample(self.ca_3(x_r))
-            #print('depth_3',depth_3.shape)
-            depth_4=self.conv1x1(self.ca_4(x_r))
-            #print('depth_4',depth_4.shape)
-            depth_5=self.conv1x1(self.ca_5(x_r))
-            #print('depth_5',depth_5.shape)
-            rgbd_fusion_1=rgb_1*depth_1
-            rgbd_fusion_2=rgb_2*depth_2
-            rgbd_fusion_3=rgb_3*depth_3
-            rgbd_fusion_4=self.upsample_1(rgb_4*depth_4)
-            rgbd_fusion_5=self.upsample_1(rgb_5*depth_5)
-            '''print('rgbd_fusion_1',rgbd_fusion_1.shape)  
-            print('rgbd_fusion_2',rgbd_fusion_2.shape) 
-            print('rgbd_fusion_3',rgbd_fusion_3.shape) 
-            print('rgbd_fusion_4',rgbd_fusion_4.shape) 
-            print('rgbd_fusion_5',rgbd_fusion_5.shape)'''      
-            c_cat=torch.cat((rgbd_fusion_1,rgbd_fusion_2,rgbd_fusion_3,rgbd_fusion_4,rgbd_fusion_5),dim=1)  
-            #print('c_cat',c_cat.shape)  
-            last_out=list_x[j]+self.last_conv1x1(c_cat)
-            #print('last',last_out.shape)
-            lde_out.append(last_out)
-
-
-        return lde_out,rgb_1,rgb_2,rgb_3,rgb_4,rgb_5,depth_1,depth_2,depth_3,depth_4,depth_5,rgbd_fusion_1,rgbd_fusion_2,rgbd_fusion_3,rgbd_fusion_4,rgbd_fusion_5
+        return last_out
 
 
 class CoarseLayer(nn.Module):
@@ -314,9 +263,9 @@ class JL_DCF(nn.Module):
         self.decoder=decoder
         self.final_conv=nn.Conv2d(8,1,1,1,0)
         
-    def forward(self, f_all,f1_all):
-        x,y,q,k,v,Att = self.JLModule(f_all,f1_all)
-        lde_out,rgb_1,rgb_2,rgb_3,rgb_4,rgb_5,depth_1,depth_2,depth_3,depth_4,depth_5,rgbd_fusion_1,rgbd_fusion_2,rgbd_fusion_3,rgbd_fusion_4,rgbd_fusion_5= self.lde(x,y)
+    def forward(self, f_all):
+        conv1r, conv2r, conv3r, conv4r, conv5r = self.JLModule(f_all)
+        lde_out = self.lde(conv2r)
         coarse_sal_rgb,coarse_sal_depth=self.coarse_layer(x[12],y[12])
         rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l=self.gde_layers(x,y,coarse_sal_rgb,coarse_sal_depth)
 
@@ -326,8 +275,7 @@ class JL_DCF(nn.Module):
 
 def build_model(network='conformer', base_model_cfg='conformer'):
    
-        backbone= Conformer(patch_size=16, channel_ratio=6, embed_dim=576, depth=12,
-                      num_heads=9, mlp_ratio=4, qkv_bias=True)
+        backbone= mobilenet_v2()
         
    
 
