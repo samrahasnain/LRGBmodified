@@ -74,9 +74,9 @@ class ShuffleChannelAttention(nn.Module):
 class LDELayer(nn.Module):
     def __init__(self):
         super(LDELayer, self).__init__()
-        self.operation_stage_1=nn.Sequential(nn.Conv2d(384,64,kernel_size=7,stride=1,padding=6,dilation=2), nn.ReLU())  
+        self.operation_stage_1=nn.Sequential(nn.Conv2d(32,32,kernel_size=3,stride=1,padding=1,dilation=1), nn.ReLU())  
 
-        self.ca_1=ShuffleChannelAttention(channel=576,reduction=16,kernel_size=3,groups=4)
+        self.ca_1=ShuffleChannelAttention(channel=32,reduction=16,kernel_size=3,groups=2)
 
         self.upsample=nn.ConvTranspose2d(576, 64, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.upsample_1=nn.ConvTranspose2d(384, 96, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
