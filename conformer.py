@@ -78,7 +78,7 @@ class LDELayer(nn.Module):
 
         self.ca_1=ShuffleChannelAttention(channel=32,reduction=16,kernel_size=3,groups=2)
 
-        self.upsample=nn.ConvTranspose2d(576, 64, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
+        #self.upsample=nn.ConvTranspose2d(576, 64, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.upsample_1=nn.ConvTranspose2d(384, 96, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.conv1x1=nn.Conv2d(576,384,1,1)
         self.last_conv1x1=nn.Conv2d(384,1,1,1)
@@ -92,7 +92,7 @@ class LDELayer(nn.Module):
         print("******LDE layer******")
         print(rgb_conv.shape,depth_tran.shape)
         rgb_1=self.operation_stage_1(list_x)
-        depth_1=self.upsample(self.ca_1(list_x))
+        depth_1=self.ca_1(list_x)
         rgbd_fusion_1=rgb_1*depth_1
         print('rgbd_fusion_1',rgbd_fusion_1.shape)  
         last_out=list_x+self.last_conv1x1(rgbd_fusion_1)
