@@ -36,10 +36,10 @@ class JLModule(nn.Module):
         print("RGB2: ",convr[2].shape)
         print("RGB3: ",convr[3].shape)
         print("RGB4: ",convr[4].shape)
-        print("RGB5: ",convr[5].shape)
+     
         
 
-        return convr[1], convr[2], convr[3], convr[4], convr[5]
+        return convr[1], convr[2], convr[3], convr[4]
 
 class ShuffleChannelAttention(nn.Module):
     def __init__(self, channel=64,reduction=16,kernel_size=3,groups=8):
