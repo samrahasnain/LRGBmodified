@@ -122,7 +122,7 @@ class GDELayer(nn.Module):
         k=1
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
-        self.conv1024=nn.Sequential(nn.Conv2d(1536,768,1,1),self.relu,nn.Conv2d(768,1,1,1))
+        self.convH=nn.Sequential(nn.Conv2d(320,160,1,1),self.relu,nn.Conv2d(160,1,1,1))
         self.conv512=nn.Sequential(nn.Conv2d(768,384,1,1),self.relu,nn.Conv2d(384,1,1,1))
         self.conv256=nn.Sequential(nn.Conv2d(384,128,1,1),self.relu,nn.Conv2d(128,1,1,1))
         
@@ -134,14 +134,15 @@ class GDELayer(nn.Module):
         self.upsampling222= nn.ConvTranspose2d(576,1, kernel_size=4, stride=4 , padding=0)
         
 
-    def forward(self, x, y,coarse_sal_rgb,coarse_sal_depth):
+    def forward(self, x, y,coarse_sal_rgb):
         #print('********GDE layer*******')
-        rgb_h=torch.zeros(coarse_sal_rgb.size(0),1,20,20).cuda()
-        rgb_m=torch.zeros(coarse_sal_rgb.size(0),1,40,40).cuda()
-        depth_h=torch.zeros(coarse_sal_rgb.size(0),1,20,20).cuda()
-        depth_m=torch.zeros(coarse_sal_rgb.size(0),1,40,40).cuda()
-        rgb_l=torch.zeros(coarse_sal_rgb.size(0),1,80,80).cuda()
-        depth_l=torch.zeros(coarse_sal_rgb.size(0),1,80,80).cuda()
+        #rgb_h=torch.zeros(coarse_sal_rgb.size(0),1,10,10).cuda()
+        #rgb_m=torch.zeros(coarse_sal_rgb.size(0),1,20,20).cuda()
+        rgb_part=self.convH(rgb_part)
+        salr=self.sigmoid(coarse_sal_rgb)
+        Ar=1-salr
+        rgb_h=Ar*rgb_part
+        print('reverse',rgb_h.shape)
         for j in range(11,7,-3):
             rgb_part=x[j]
             depth_part=y[j]
@@ -153,7 +154,7 @@ class GDELayer(nn.Module):
       
             #print('before j rgb depth',j,rgb_part.shape,depth_part.shape)
             if (rgb_part.size(1)==1536):
-                rgb_part=self.conv1024(rgb_part)
+                
                 coarse_sal_rgb1=self.upsampling(coarse_sal_rgb)
                 coarse_sal_depth1=self.upsampling(coarse_sal_depth)
                 y_r = depth_part[:, 1:].transpose(1, 2).unflatten(2,(20,20))
@@ -262,7 +263,7 @@ class JL_DCF(nn.Module):
         conv1r, conv2r, conv3r, conv4r = self.JLModule(f_all)
         lde_out = self.lde(conv2r)
         coarse_sal_rgb=self.coarse_layer(conv4r)
-        rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l=self.gde_layers(x,y,coarse_sal_rgb,coarse_sal_depth)
+        rgb_h,rgb_m=self.gde_layers(conv3r, conv4r, coarse_sal_rgb)
 
         sal_final,sal_low,sal_med,sal_high,e_rgbd0,e_rgbd1,e_rgbd2=self.decoder(lde_out ,rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l)
 
