@@ -105,21 +105,16 @@ class CoarseLayer(nn.Module):
     def __init__(self):
         super(CoarseLayer, self).__init__()
         self.relu = nn.ReLU()
-        self.conv_r = nn.Sequential(nn.Conv2d(1536,768,1,1),self.relu,nn.Conv2d(768, 1, 1, 1))
-        self.conv_d=  nn.Sequential(nn.Conv2d(576,192,1,1),self.relu,nn.Conv2d(192,1,3,2,1))
+        self.conv_r = nn.Sequential(nn.Conv2d(320,160,1,1),self.relu,nn.Conv2d(160, 1, 1, 1))
+        
         
 
-    def forward(self, x, y):
-        #print('********coarse layer******')
-        #print('corase',x.shape,y.shape)
-        B, _, C = y.shape
-        _,_,H,W=x.shape
-        y_r = y[:, 1:].transpose(1, 2).unflatten(2,(H*2,W*2))
-        #print('after corase transformation',x.shape,y_r.shape)
+    def forward(self, x):
+
         sal_rgb=self.conv_r(x)
-        sal_depth=self.conv_d(y_r)
-        #print('sal r and d ',sal_rgb.shape,sal_depth.shape)
-        return sal_rgb,sal_depth
+        
+        print('sal r  ',sal_rgb.shape)
+        return sal_rgb
 
 class GDELayer(nn.Module):
     def __init__(self):
@@ -266,7 +261,7 @@ class JL_DCF(nn.Module):
     def forward(self, f_all,x):
         conv1r, conv2r, conv3r, conv4r = self.JLModule(f_all)
         lde_out = self.lde(conv2r)
-        coarse_sal_rgb,coarse_sal_depth=self.coarse_layer(x[12],y[12])
+        coarse_sal_rgb=self.coarse_layer(conv4r)
         rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l=self.gde_layers(x,y,coarse_sal_rgb,coarse_sal_depth)
 
         sal_final,sal_low,sal_med,sal_high,e_rgbd0,e_rgbd1,e_rgbd2=self.decoder(lde_out ,rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l)
