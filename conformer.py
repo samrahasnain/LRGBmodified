@@ -90,7 +90,7 @@ class LDELayer(nn.Module):
         rgb_conv = list_x
         depth_tran = list_x
         print("******LDE layer******")
-        print(i,"     ",rgb_conv.shape,depth_tran.shape)
+        print(rgb_conv.shape,depth_tran.shape)
         rgb_1=self.operation_stage_1(list_x)
         depth_1=self.upsample(self.ca_1(list_x))
         rgbd_fusion_1=rgb_1*depth_1
