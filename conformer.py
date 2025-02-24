@@ -123,27 +123,34 @@ class GDELayer(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.convH=nn.Sequential(nn.Conv2d(320,160,1,1),self.relu,nn.Conv2d(160,1,1,1))
-        self.conv512=nn.Sequential(nn.Conv2d(768,384,1,1),self.relu,nn.Conv2d(384,1,1,1))
-        self.conv256=nn.Sequential(nn.Conv2d(384,128,1,1),self.relu,nn.Conv2d(128,1,1,1))
+        self.convM=nn.Sequential(nn.Conv2d(96,32,1,1),self.relu,nn.Conv2d(32,1,1,1))
+        self.convL=nn.Sequential(nn.Conv2d(32,24,1,1),self.relu,nn.Conv2d(24,1,1,1))
         
-        self.conv384=nn.Sequential(nn.Conv2d(576,192,1,1),self.relu,nn.Conv2d(192,1,1,1))
+        #self.conv384=nn.Sequential(nn.Conv2d(576,192,1,1),self.relu,nn.Conv2d(192,1,1,1))
         self.upsampling= nn.ConvTranspose2d(k,k, kernel_size=4, stride=2 , padding=1) # 10x10 to 20x20
-        self.upsampling11= nn.ConvTranspose2d(k,k, kernel_size=4, stride=4 , padding=0)# 10x10 to 40x40
-        self.upsampling12=nn.ConvTranspose2d(1,1, kernel_size=5, stride=8 , padding=0,output_padding=3) # 10x10 t0 80x80
-        self.upsampling22= nn.ConvTranspose2d(576,k, kernel_size=4, stride=2 , padding=1) 
-        self.upsampling222= nn.ConvTranspose2d(576,1, kernel_size=4, stride=4 , padding=0)
+        #self.upsampling11= nn.ConvTranspose2d(k,k, kernel_size=4, stride=4 , padding=0)# 10x10 to 40x40
+        #self.upsampling12=nn.ConvTranspose2d(1,1, kernel_size=5, stride=8 , padding=0,output_padding=3) # 10x10 t0 80x80
+        #self.upsampling22= nn.ConvTranspose2d(576,k, kernel_size=4, stride=2 , padding=1) 
+        #self.upsampling222= nn.ConvTranspose2d(576,1, kernel_size=4, stride=4 , padding=0)
         
 
-    def forward(self, x, y,coarse_sal_rgb):
+    def forward(self, convr4, convr5, coarse_sal_rgb):
         #print('********GDE layer*******')
         #rgb_h=torch.zeros(coarse_sal_rgb.size(0),1,10,10).cuda()
         #rgb_m=torch.zeros(coarse_sal_rgb.size(0),1,20,20).cuda()
-        rgb_part=self.convH(rgb_part)
+        convr5_rgb_part=self.convH(convr5)
         salr=self.sigmoid(coarse_sal_rgb)
         Ar=1-salr
-        rgb_h=Ar*rgb_part
+        rgb_h=Ar*convr5_rgb_part
         print('reverse',rgb_h.shape)
-        for j in range(11,7,-3):
+        convr4_rgb_part=self.convM(convr4)
+        coarse_sal_rgb1=self.upsampling(coarse_sal_rgb)
+        salr=self.sigmoid(coarse_sal_rgb1)
+        Ar=1-salr
+        rgb_m=Ar*convr4_rgb_part
+        print('reverse',rgb_m.shape)
+       
+        '''for j in range(11,7,-3):
             rgb_part=x[j]
             depth_part=y[j]
             B, _, C = depth_part.shape
@@ -206,12 +213,12 @@ class GDELayer(nn.Module):
 
         sald=self.sigmoid(coarse_sal_depth1)
         Ad=1-sald
-        depth_l+=Ad*y_r
+        depth_l+=Ad*y_r'''
         #print('j, rgb after,coarse_rgb_after,depth after, coarse_depth_after,Ar,Ad',j,rgb_part.shape,coarse_sal_rgb1.shape,y_r.shape,coarse_sal_depth1.shape,Ar.shape,Ad.shape)
             
             
         #print('gde',rgb_h.shape,rgb_m.shape,depth_h.shape,depth_m.shape)     
-        return rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l
+        return rgb_h,rgb_m
 
 class Decoder(nn.Module):
     def __init__(self):
