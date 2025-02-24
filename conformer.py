@@ -223,7 +223,7 @@ class GDELayer(nn.Module):
 class Decoder(nn.Module):
     def __init__(self):
         super(Decoder, self).__init__()
-        self.upsample=nn.ConvTranspose2d(384, 1, kernel_size=3, stride=2, padding=1, output_padding=1,dilation=1)
+        self.upsample=nn.ConvTranspose2d(40, 1, kernel_size=3, stride=2, padding=1, output_padding=1,dilation=1)
         #self.upsample1=nn.ConvTranspose2d(576, 1, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.up2= nn.ConvTranspose2d(1, 1, kernel_size=4, stride=2, padding=1) 
         #self.up2= nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, padding=2)
@@ -232,27 +232,24 @@ class Decoder(nn.Module):
         
         
         
-    def forward(self, lde_out ,rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l):
-        sal_high=rgb_h+depth_h
-        sal_med=rgb_m+depth_m
-        sal_low=rgb_l+depth_l
-       
-        lde_out1=self.upsample(lde_out[0])
+    def forward(self, lde_out ,rgb_h,rgb_m):
+      
+        lde_out1=self.upsample(lde_out)
       
 
-        lde_out2=self.upsample(lde_out[1])
+        #lde_out2=self.upsample(lde_out[1])
         
 
-        lde_out3=self.upsample(lde_out[2])
+        #lde_out3=self.upsample(lde_out[2])
         
         edge_rgbd0=self.act(self.up21(lde_out1))
-        edge_rgbd1=self.act(self.up21(lde_out2))
-        edge_rgbd2=self.act(self.up21(lde_out3))
+        #edge_rgbd1=self.act(self.up21(lde_out2))
+        #edge_rgbd2=self.act(self.up21(lde_out3))
         #print(self.up2(sal_high).shape,self.up2(sal_med).shape,self.up2(sal_low).shape,  edge_rgbd0.shape,  edge_rgbd1.shape,  edge_rgbd2.shape)
-        sal_final=edge_rgbd0+edge_rgbd1+edge_rgbd2+self.up2(self.up2(sal_low+self.up2((sal_med+(self.up2(sal_high))))))
+        sal_final=edge_rgbd0++self.up2(self.up2(self.up2((rgb_m+(self.up2(rgb_h))))))
         
 
-        return sal_final,sal_low,sal_med,sal_high,edge_rgbd0,edge_rgbd1,edge_rgbd2
+        return sal_final,edge_rgbd0
 
 
 class JL_DCF(nn.Module):
@@ -272,9 +269,9 @@ class JL_DCF(nn.Module):
         coarse_sal_rgb=self.coarse_layer(conv4r)
         rgb_h,rgb_m=self.gde_layers(conv3r, conv4r, coarse_sal_rgb)
 
-        sal_final,sal_low,sal_med,sal_high,e_rgbd0,e_rgbd1,e_rgbd2=self.decoder(lde_out ,rgb_h,rgb_m,depth_h,depth_m,rgb_l,depth_l)
+        sal_final,edge_rgbd0=self.decoder(lde_out ,rgb_h,rgb_m)
 
-        return sal_final,sal_low,sal_med,sal_high,coarse_sal_rgb,coarse_sal_depth,Att,e_rgbd0,e_rgbd1,e_rgbd2,rgb_1,rgb_2,rgb_3,rgb_4,rgb_5,depth_1,depth_2,depth_3,depth_4,depth_5,rgbd_fusion_1,rgbd_fusion_2,rgbd_fusion_3,rgbd_fusion_4,rgbd_fusion_5
+        return sal_final,coarse_sal_rgb,edge_rgbd0
 
 def build_model(network='conformer', base_model_cfg='conformer'):
    
