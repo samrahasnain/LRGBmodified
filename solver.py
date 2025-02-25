@@ -356,16 +356,15 @@ class Solver(object):
                 self.optimizer.zero_grad()
                 sal_label_coarse = F.interpolate(sal_label, size_coarse, mode='bilinear', align_corners=True)
                 
-                sal_final,sal_low,sal_med,sal_high,coarse_sal_rgb,coarse_sal_depth,Att,sal_edge_rgbd0,sal_edge_rgbd1,sal_edge_rgbd2 = self.net(sal_image,sal_depth)
+                sal_final,sal_edge_rgbd0 = self.net(sal_image)
                 
                 sal_loss_coarse_rgb =  F.binary_cross_entropy_with_logits(coarse_sal_rgb, sal_label_coarse, reduction='sum')
-                sal_loss_coarse_depth =  F.binary_cross_entropy_with_logits(coarse_sal_depth, sal_label_coarse, reduction='sum')
+                
                 sal_final_loss =  F.binary_cross_entropy_with_logits(sal_final, sal_label, reduction='sum')
                 edge_loss_rgbd0=F.smooth_l1_loss(sal_edge_rgbd0,sal_edge)
-                edge_loss_rgbd1=F.smooth_l1_loss(sal_edge_rgbd1,sal_edge)
-                edge_loss_rgbd2=F.smooth_l1_loss(sal_edge_rgbd2,sal_edge)
+              
                 
-                sal_loss_fuse = sal_final_loss+512*edge_loss_rgbd0+1024*edge_loss_rgbd1+2048*edge_loss_rgbd2+sal_loss_coarse_rgb+sal_loss_coarse_depth
+                sal_loss_fuse = sal_final_loss+edge_loss_rgbd0+sal_loss_coarse_rgb
                 sal_loss = sal_loss_fuse/ (self.iter_size * self.config.batch_size)
                 r_sal_loss += sal_loss.data
                 r_sal_loss_item+=sal_loss.item() * sal_image.size(0)
@@ -373,10 +372,10 @@ class Solver(object):
                 self.optimizer.step()
 
                 if (i + 1) % (self.show_every // self.config.batch_size) == 0:
-                    print('epoch: [%2d/%2d], iter: [%5d/%5d]  ||  Sal : %0.4f  ||sal_final:%0.4f|| edge_loss0:%0.4f|| edge_loss1:%0.4f|| edge_loss2:%0.4f|| r:%0.4f||d:%0.4f' % (
-                        epoch, self.config.epoch, i + 1, iter_num, r_sal_loss,sal_final_loss,edge_loss_rgbd0,edge_loss_rgbd1,edge_loss_rgbd2,sal_loss_coarse_rgb,sal_loss_coarse_depth ))
+                    print('epoch: [%2d/%2d], iter: [%5d/%5d]  ||  Sal : %0.4f  ||sal_final:%0.4f|| edge_loss0:%0.4f' % (
+                        epoch, self.config.epoch, i + 1, iter_num, r_sal_loss,sal_final_loss,edge_loss_rgbd0 ))
                     # print('Learning rate: ' + str(self.lr))
-                    writer.add_scalar('training loss', r_sal_loss / (self.show_every / self.iter_size),
+                    '''writer.add_scalar('training loss', r_sal_loss / (self.show_every / self.iter_size),
                                       epoch * len(self.train_loader.dataset) + i)
                     writer.add_scalar('sal_loss_coarse_rgb training loss', sal_loss_coarse_rgb.data,
                                       epoch * len(self.train_loader.dataset) + i)
@@ -423,7 +422,7 @@ class Solver(object):
                     sal_edge_rgbd = sal_edge_rgbd.sigmoid().data.cpu().numpy().squeeze()
                     sal_edge_rgbd = (sal_edge_rgbd - sal_edge_rgbd.min()) / (sal_edge_rgbd.max() - sal_edge_rgbd.min() + 1e-8)
                     writer.add_image('sal_edge_rgbd', torch.tensor(sal_edge_rgbd), i, dataformats='HW')
-                    grid_image = make_grid(sal_edge[0].clone().cpu().data, 1, normalize=True)
+                    grid_image = make_grid(sal_edge[0].clone().cpu().data, 1, normalize=True)'''
 
 
             if (epoch + 1) % self.config.epoch_save == 0:
