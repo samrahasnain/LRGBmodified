@@ -31,11 +31,11 @@ class JLModule(nn.Module):
     def forward(self, x):
 
         convr = self.backbone(x)
-        print("Backbone Features shape")
+        '''print("Backbone Features shape")
         print("RGB1: ",convr[1].shape)
         print("RGB2: ",convr[2].shape)
         print("RGB3: ",convr[3].shape)
-        print("RGB4: ",convr[4].shape)
+        print("RGB4: ",convr[4].shape)'''
      
         
 
@@ -89,14 +89,14 @@ class LDELayer(nn.Module):
         
         rgb_conv = list_x
         depth_tran = list_x
-        print("******LDE layer******")
-        print(rgb_conv.shape,depth_tran.shape)
+        #print("******LDE layer******")
+        #print(rgb_conv.shape,depth_tran.shape)
         rgb_1=self.operation_stage_1(list_x)
         depth_1=self.ca_1(list_x)
         rgbd_fusion_1=list_x+(rgb_1*depth_1)
-        print('rgbd_fusion_1',rgbd_fusion_1.shape)  
+        #print('rgbd_fusion_1',rgbd_fusion_1.shape)  
         last_out=self.last_conv1x1(rgbd_fusion_1)
-        print('last',last_out.shape)
+        #print('last',last_out.shape)
         
         return last_out
 
@@ -113,7 +113,7 @@ class CoarseLayer(nn.Module):
 
         sal_rgb=self.conv_r(x)
         
-        print('sal r  ',sal_rgb.shape)
+        #print('sal r  ',sal_rgb.shape)
         return sal_rgb
 
 class GDELayer(nn.Module):
@@ -142,13 +142,13 @@ class GDELayer(nn.Module):
         salr=self.sigmoid(coarse_sal_rgb)
         Ar=1-salr
         rgb_h=Ar*convr5_rgb_part
-        print('reverse',rgb_h.shape)
+        #print('reverse',rgb_h.shape)
         convr4_rgb_part=self.convM(convr4)
         coarse_sal_rgb1=self.upsampling(coarse_sal_rgb)
         salr=self.sigmoid(coarse_sal_rgb1)
         Ar=1-salr
         rgb_m=Ar*convr4_rgb_part
-        print('reverse',rgb_m.shape)
+        #print('reverse',rgb_m.shape)
        
         '''for j in range(11,7,-3):
             rgb_part=x[j]
@@ -248,7 +248,7 @@ class Decoder(nn.Module):
         #edge_rgbd2=self.act(self.up21(lde_out3))
         #print(self.up2(sal_high).shape,self.up2(sal_med).shape,self.up2(sal_low).shape,  edge_rgbd0.shape,  edge_rgbd1.shape,  edge_rgbd2.shape)
         sal_final=edge_rgbd0+self.up21(self.up2(self.up2(self.up2((rgb_m+(self.up2(rgb_h)))))))
-        print(edge_rgbd0.shape, sal_final.shape)
+        #print(edge_rgbd0.shape, sal_final.shape)
 
         return sal_final,edge_rgbd0
 
