@@ -223,7 +223,7 @@ class GDELayer(nn.Module):
 class Decoder(nn.Module):
     def __init__(self):
         super(Decoder, self).__init__()
-        self.upsample=nn.ConvTranspose2d(40, 1, kernel_size=3, stride=2, padding=1, output_padding=1,dilation=1)
+        self.upsample=nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, padding=1, output_padding=1,dilation=1)
         #self.upsample1=nn.ConvTranspose2d(576, 1, kernel_size=3, stride=4, padding=1, output_padding=3,dilation=1)
         self.up2= nn.ConvTranspose2d(1, 1, kernel_size=4, stride=2, padding=1) 
         #self.up2= nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, padding=2)
