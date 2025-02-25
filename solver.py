@@ -356,7 +356,7 @@ class Solver(object):
                 self.optimizer.zero_grad()
                 sal_label_coarse = F.interpolate(sal_label, size_coarse, mode='bilinear', align_corners=True)
                 
-                sal_final,sal_edge_rgbd0 = self.net(sal_image)
+                sal_final,coarse_sal_rgb,sal_edge_rgbd0 = self.net(sal_image)
                 
                 sal_loss_coarse_rgb =  F.binary_cross_entropy_with_logits(coarse_sal_rgb, sal_label_coarse, reduction='sum')
                 
