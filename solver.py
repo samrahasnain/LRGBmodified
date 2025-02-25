@@ -105,11 +105,11 @@ class Solver(object):
                     depth = depth.to(device)
 
                 #input = torch.cat((images, depth), dim=0)
-                preds,sal_low,sal_med,sal_high,coarse_sal_rgb,coarse_sal_depth,Att,e_rgbd0,e_rgbd1,e_rgbd2,rgb_1,rgb_2,rgb_3,rgb_4,rgb_5,depth_1,depth_2,depth_3,depth_4,depth_5,rgbd_fusion_1,rgbd_fusion_2,rgbd_fusion_3,rgbd_fusion_4,rgbd_fusion_5= self.net(images,depth)
+                preds,coarse_sal_rgb,e_rgbd0= self.net(images)
                 #print(depth_1.shape[1])
-                rgb_1_a=((torch.sum(rgb_1,1)**2)/rgb_1.shape[1]).unsqueeze(0)
+                #rgb_1_a=((torch.sum(rgb_1,1)**2)/rgb_1.shape[1]).unsqueeze(0)
                 #print(depth_1.shape)
-                rgb_2_a=(torch.sum(rgb_2,1)/rgb_2.shape[1]).unsqueeze(0)
+                '''rgb_2_a=(torch.sum(rgb_2,1)/rgb_2.shape[1]).unsqueeze(0)
                 rgb_3_a=(torch.sum(rgb_3,1)/rgb_3.shape[1]).unsqueeze(0)
                 rgb_4_a=(torch.sum(rgb_4,1)/rgb_4.shape[1]).unsqueeze(0)
                 rgb_5_a=(torch.sum(rgb_5,1)/rgb_5.shape[1]).unsqueeze(0)
@@ -241,7 +241,7 @@ class Solver(object):
                 multi_fuse_rgbd_fusion_5_a = 255 * rgbd_fusion_5_a
                 #multi_fuse_rgbd_fusion_5_a=cv2.applyColorMap((multi_fuse_rgbd_fusion_5_a).astype(np.uint8), cv2.COLORMAP_RAINBOW)
                 filename_rgbd_fusion_5_a = os.path.join(self.config.test_folder, name[:-4] + '_rgbd_fusion_5_a.png')
-                cv2.imwrite(filename_rgbd_fusion_5_a, multi_fuse_rgbd_fusion_5_a)
+                cv2.imwrite(filename_rgbd_fusion_5_a, multi_fuse_rgbd_fusion_5_a)'''
                 #print(rgb_1_a.shape)
                 '''model_weights =[]
                 conv_layers = []# get all the model children as list
