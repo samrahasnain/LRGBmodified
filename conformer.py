@@ -264,7 +264,7 @@ class JL_DCF(nn.Module):
         self.decoder=decoder
         self.final_conv=nn.Conv2d(8,1,1,1,0)
         
-    def forward(self, f_all,x):
+    def forward(self, f_all):
         conv1r, conv2r, conv3r, conv4r = self.JLModule(f_all)
         lde_out = self.lde(conv2r)
         coarse_sal_rgb=self.coarse_layer(conv4r)
