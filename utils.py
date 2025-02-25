@@ -128,7 +128,7 @@ def count_model_flops(model, input_res=[320,320], input_res1=[320,320], multiply
     input2 = Variable(
         torch.rand(3, input_res[1], input_res[0]).unsqueeze(0), requires_grad=True
     )
-    out = model(input.cuda(),input2.cuda())
+    out = model(input.cuda())
     total_flops = (
         sum(list_conv)
         + sum(list_linear)
