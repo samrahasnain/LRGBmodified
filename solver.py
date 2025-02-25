@@ -275,9 +275,9 @@ class Solver(object):
                     print(feature_map.shape)'''
 
                 #print(e_rgbd01.shape)
-                preds = F.interpolate(preds, tuple(im_size), mode='bilinear', align_corners=True)
+                #preds = F.interpolate(preds, tuple(im_size), mode='bilinear', align_corners=True)
                 pred = np.squeeze(torch.sigmoid(preds)).cpu().data.numpy()
-                #print(pred.shape)
+                print(pred.shape)
                 pred = (pred - pred.min()) / (pred.max() - pred.min() + 1e-8)
                 multi_fuse = 255 * pred
                 filename = os.path.join(self.config.test_folder, name[:-4] + '_convtran.png')
