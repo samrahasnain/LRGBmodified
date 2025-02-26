@@ -26,7 +26,7 @@ class ImageDataTrain(data.Dataset):
         im_name = self.sal_list[item % self.sal_num].split()[0]
         de_name = self.sal_list[item % self.sal_num].split()[0]
         gt_name = self.sal_list[item % self.sal_num].split()[1]
-        print(os.path.join(self.sal_root, im_name),os.path.join(self.sal_root, gt_name))
+        #print(os.path.join(self.sal_root, im_name),os.path.join(self.sal_root, gt_name))
         sal_image , im_size= load_image(os.path.join(self.sal_root, im_name), self.image_size)
         sal_depth, im_size = load_image(os.path.join(self.sal_root, de_name), self.image_size)
         sal_label,sal_edge = load_sal_label(os.path.join(self.sal_root, gt_name), self.image_size)
