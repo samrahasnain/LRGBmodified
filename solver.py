@@ -1,4 +1,4 @@
-import torch
+'''import torch
 from torch.nn import functional as F
 from conformer import build_model
 import numpy as np
@@ -433,6 +433,137 @@ class Solver(object):
             print('Epoch:[%2d/%2d] | Train Loss : %.3f' % (epoch, self.config.epoch,train_loss))
             
         # save model
-        torch.save(self.net.state_dict(), '%s/final.pth' % self.config.save_folder)
+        torch.save(self.net.state_dict(), '%s/final.pth' % self.config.save_folder)'''
+import torch
+from torch.nn import functional as F
+from conformer import build_model
+import numpy as np
+import os
+import cv2
+import time
+from torch.utils.tensorboard import SummaryWriter
+from torchvision.utils import make_grid
+import torch.nn as nn
+import argparse
+import os.path as osp
+import torchvision
+from torchvision import models, transforms, utils
+from torch.autograd import Variable
+import matplotlib.pyplot as plt
+import scipy.misc
+from utils import count_model_flops, count_model_params
+from PIL import Image
+import json
+
+class Solver(object):
+    def __init__(self, train_loader, test_loader, config):
+        self.train_loader = train_loader
+        self.test_loader = test_loader
+        self.config = config
+        self.iter_size = config.iter_size
+        self.show_every = config.show_every
         
+        # Build and script the model
+        self.net = build_model(self.config.network, self.config.arch)
+        if config.mode == 'test' or config.mode == 'train':
+            print(f'Loading pre-trained model from {self.config.model}...')
+            self.net.load_state_dict(torch.load(self.config.model, map_location=torch.device('cpu')))
+        
+        if self.config.cuda:
+            self.net = self.net.cuda()
+        
+        # Convert to TorchScript for faster inference
+        self.scripted_net = torch.jit.script(self.net)
+        
+        self.lr = self.config.lr
+        self.wd = self.config.wd
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr, weight_decay=self.wd)
+        self.print_network(self.net, 'Conformer based SOD Structure')
+
+    def print_network(self, model, name):
+        num_params_t = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        num_params = sum(p.numel() for p in model.parameters())
+        print(name)
+        print(f'Trainable parameters: {num_params_t}')
+        print(f'Total parameters: {num_params}')
+        print(f'FLOPs: {count_model_flops(model)}')
+        print(f'Params: {count_model_params(model)}')
+
+    def test(self):
+        print('Testing...')
+        time_s = time.time()
+        img_num = len(self.test_loader)
+        
+        for i, data_batch in enumerate(self.test_loader):
+            images, name, im_size, depth = (
+                data_batch['image'],
+                data_batch['name'][0],
+                np.asarray(data_batch['size']),
+                data_batch['depth']
+            )
+            
+            with torch.no_grad():
+                if self.config.cuda:
+                    device = torch.device(self.config.device_id)
+                    images = images.to(device)
+                    depth = depth.to(device)
+                
+                preds, _, _, _, _, _ = self.scripted_net(images)
+                pred = torch.sigmoid(preds).cpu().numpy().squeeze()
+                pred = (pred - pred.min()) / (pred.max() - pred.min() + 1e-8)
+                multi_fuse = (255 * pred).astype(np.uint8)
+                filename = os.path.join(self.config.test_folder, name[:-4] + '_convtran.png')
+                cv2.imwrite(filename, multi_fuse)
+        
+        time_e = time.time()
+        print(f'Speed: {img_num / (time_e - time_s):.2f} FPS')
+        print('Test Done!')
+    
+    def train(self):
+        iter_num = len(self.train_loader.dataset) // self.config.batch_size
+        loss_vals = []
+        
+        for epoch in range(self.config.epoch):
+            r_sal_loss_item = 0
+            
+            for i, data_batch in enumerate(self.train_loader):
+                sal_image, sal_depth, sal_label, sal_edge = (
+                    data_batch['sal_image'],
+                    data_batch['sal_depth'],
+                    data_batch['sal_label'],
+                    data_batch['sal_edge']
+                )
+                
+                if self.config.cuda:
+                    device = torch.device(self.config.device_id)
+                    sal_image, sal_depth, sal_label, sal_edge = (
+                        sal_image.to(device),
+                        sal_depth.to(device),
+                        sal_label.to(device),
+                        sal_edge.to(device)
+                    )
+                
+                self.optimizer.zero_grad()
+                sal_label_coarse = F.interpolate(sal_label, (10, 10), mode='bilinear', align_corners=True)
+                sal_final, coarse_sal_rgb, sal_edge_rgbd0 = self.net(sal_image)
+                
+                sal_loss_coarse_rgb = F.binary_cross_entropy_with_logits(coarse_sal_rgb, sal_label_coarse, reduction='sum')
+                sal_final_loss = F.binary_cross_entropy_with_logits(sal_final, sal_label, reduction='sum')
+                edge_loss_rgbd0 = F.smooth_l1_loss(sal_edge_rgbd0, sal_edge)
+                
+                sal_loss = (sal_final_loss + edge_loss_rgbd0 + sal_loss_coarse_rgb) / (self.iter_size * self.config.batch_size)
+                r_sal_loss_item += sal_loss.item() * sal_image.size(0)
+                
+                sal_loss.backward()
+                self.optimizer.step()
+                
+            if (epoch + 1) % self.config.epoch_save == 0:
+                torch.save(self.net.state_dict(), f'{self.config.save_folder}/epoch_{epoch + 1}.pth')
+                
+            train_loss = r_sal_loss_item / len(self.train_loader.dataset)
+            loss_vals.append(train_loss)
+            print(f'Epoch:[{epoch + 1}/{self.config.epoch}] | Train Loss: {train_loss:.3f}')
+            
+        torch.save(self.net.state_dict(), f'{self.config.save_folder}/final.pth')
+    
 
