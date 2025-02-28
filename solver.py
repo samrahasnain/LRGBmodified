@@ -43,9 +43,9 @@ class Solver(object):
         if config.mode == 'train':
             if self.config.load == '':
                 print("Loading pre-trained imagenet weights for fine tuning")
-                '''self.net.JLModule.load_pretrained_model(self.config.pretrained_model
+                self.net.JLModule.load_pretrained_model(self.config.pretrained_model
                                                         if isinstance(self.config.pretrained_model, str)
-                                                        else self.config.pretrained_model[self.config.network])'''
+                                                        else self.config.pretrained_model[self.config.network])
                 # load pretrained backbone
             else:
                 print('Loading pretrained model to resume training')
@@ -78,7 +78,7 @@ class Solver(object):
         print(f'Flops: {count_model_params(model)}')
 
     # build the network
-    '''def build_model(self):
+    def build_model(self):
         self.net = build_model(self.config.network, self.config.arch)
 
         if self.config.cuda:
@@ -89,7 +89,7 @@ class Solver(object):
 
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr, weight_decay=self.wd)
 
-        self.print_network(self.net, 'JL-DCF Structure')'''
+        self.print_network(self.net, 'JL-DCF Structure')
 
     def test(self):
         print('Testing...')
@@ -109,7 +109,7 @@ class Solver(object):
                 #print(depth_1.shape[1])
                 #rgb_1_a=((torch.sum(rgb_1,1)**2)/rgb_1.shape[1]).unsqueeze(0)
                 #print(depth_1.shape)
-                '''rgb_2_a=(torch.sum(rgb_2,1)/rgb_2.shape[1]).unsqueeze(0)
+                rgb_2_a=(torch.sum(rgb_2,1)/rgb_2.shape[1]).unsqueeze(0)
                 rgb_3_a=(torch.sum(rgb_3,1)/rgb_3.shape[1]).unsqueeze(0)
                 rgb_4_a=(torch.sum(rgb_4,1)/rgb_4.shape[1]).unsqueeze(0)
                 rgb_5_a=(torch.sum(rgb_5,1)/rgb_5.shape[1]).unsqueeze(0)
@@ -123,7 +123,7 @@ class Solver(object):
                 rgbd_fusion_3_a=(torch.sum(rgbd_fusion_3,1)/rgbd_fusion_3.shape[1]).unsqueeze(0)
                 rgbd_fusion_4_a=(torch.sum(rgbd_fusion_4,1)/rgbd_fusion_4.shape[1]).unsqueeze(0)
                 rgbd_fusion_5_a=(torch.sum(rgbd_fusion_5,1)/rgbd_fusion_5.shape[1]).unsqueeze(0)
-                rgb_1_a = F.interpolate(rgb_1_a, tuple(im_size), mode='bilinear', align_corners=True)'''
+                rgb_1_a = F.interpolate(rgb_1_a, tuple(im_size), mode='bilinear', align_corners=True)
                 rgb_1_a = np.squeeze(torch.sigmoid(rgb_h)).cpu().data.numpy()
                 rgb_1_a = (rgb_1_a- rgb_1_a.min()) / (rgb_1_a.max() - rgb_1_a.min() + 1e-8)
                 multi_fuse_rgb_1_a = 255 * rgb_1_a
@@ -147,7 +147,7 @@ class Solver(object):
                 filename_rgb_3_a = os.path.join(self.config.test_folder, name[:-4] + '_rgb_3_a.png')
                 cv2.imwrite(filename_rgb_3_a, multi_fuse_rgb_3_a)
 
-                '''rgb_4_a = F.interpolate(rgb_4_a, tuple(im_size), mode='bilinear', align_corners=True)
+                rgb_4_a = F.interpolate(rgb_4_a, tuple(im_size), mode='bilinear', align_corners=True)
                 rgb_4_a = np.squeeze(torch.sigmoid(rgb_4_a)).cpu().data.numpy()
                 rgb_4_a = (rgb_4_a- rgb_4_a.min()) / (rgb_4_a.max() - rgb_4_a.min() + 1e-8)
                 multi_fuse_rgb_4_a = 255 * rgb_4_a
@@ -241,9 +241,9 @@ class Solver(object):
                 multi_fuse_rgbd_fusion_5_a = 255 * rgbd_fusion_5_a
                 #multi_fuse_rgbd_fusion_5_a=cv2.applyColorMap((multi_fuse_rgbd_fusion_5_a).astype(np.uint8), cv2.COLORMAP_RAINBOW)
                 filename_rgbd_fusion_5_a = os.path.join(self.config.test_folder, name[:-4] + '_rgbd_fusion_5_a.png')
-                cv2.imwrite(filename_rgbd_fusion_5_a, multi_fuse_rgbd_fusion_5_a)'''
+                cv2.imwrite(filename_rgbd_fusion_5_a, multi_fuse_rgbd_fusion_5_a)
                 #print(rgb_1_a.shape)
-                '''model_weights =[]
+                model_weights =[]
                 conv_layers = []# get all the model children as list
                 model_children = list(self.net.modules())#counter to keep count of the conv layers
                 counter = 0#append all the conv layers and their respective wights to the list
@@ -272,7 +272,7 @@ class Solver(object):
                     names.append(str(layer))
                 print(len(outputs))#print feature_maps
                 for feature_map in outputs:
-                    print(feature_map.shape)'''
+                    print(feature_map.shape)
 
                 #print(e_rgbd01.shape)
                 #preds = F.interpolate(preds, tuple(im_size), mode='bilinear', align_corners=True)
@@ -289,14 +289,14 @@ class Solver(object):
                 multi_fuse_coarse_sal_rgb = 255 * coarse_sal_rgbs
                 filename_r = os.path.join(self.config.test_folder, name[:-4] + '_coarse_sal_rgb.png')
                 cv2.imwrite(filename_r, multi_fuse_coarse_sal_rgb)
-                '''coarse_sal_depth= F.interpolate(coarse_sal_depth, tuple(im_size), mode='bilinear', align_corners=True)
+                coarse_sal_depth= F.interpolate(coarse_sal_depth, tuple(im_size), mode='bilinear', align_corners=True)
                 coarse_sal_ds = np.squeeze(torch.sigmoid(coarse_sal_depth)).cpu().data.numpy()
                 #print(pred.shape)
                 coarse_sal_ds = (coarse_sal_ds - coarse_sal_ds.min()) / (coarse_sal_ds.max() - coarse_sal_ds.min() + 1e-8)
                 multi_fuse_coarse_sal_ds = 255 * coarse_sal_ds
                 filename_d = os.path.join(self.config.test_folder, name[:-4] + '_coarse_sal_d.png')
                 cv2.imwrite(filename_d, multi_fuse_coarse_sal_ds)
-                e_rgbd2= F.interpolate(e_rgbd2, tuple(im_size), mode='bilinear', align_corners=True)'''
+                e_rgbd2= F.interpolate(e_rgbd2, tuple(im_size), mode='bilinear', align_corners=True)
                 e_rgbd2 = np.squeeze(torch.sigmoid(e_rgbd0)).cpu().data.numpy()
                 #print(pred.shape)
                 e_rgbd2 = (e_rgbd2 - e_rgbd2.min()) / (e_rgbd2.max() - e_rgbd2.min() + 1e-8)
@@ -305,7 +305,7 @@ class Solver(object):
                 cv2.imwrite(filename_re, multi_fuse_e_rgbd2)
 
                
-                '''#e_rgbd01 = F.interpolate(e_rgbd01, tuple(im_size), mode='bilinear', align_corners=True)
+                #e_rgbd01 = F.interpolate(e_rgbd01, tuple(im_size), mode='bilinear', align_corners=True)
                 e_rgbd01 = np.squeeze(torch.sigmoid(Att[10])).cpu().data.numpy()
                 print(e_rgbd01.shape)
                 #e_rgbd01 = (e_rgbd01-e_rgbd01.min()) / (e_rgbd01.max() - e_rgbd01.min() + 1e-8)
@@ -327,7 +327,7 @@ class Solver(object):
                 e_rgbd21 = (e_rgbd21-e_rgbd21.min()) / (e_rgbd21.max() - e_rgbd21.min() + 1e-8)
                 e_rgbd21 = 255 * e_rgbd21
                 filename = os.path.join(self.config.test_folder, name[:-6] + '_edge.png')
-                cv2.imwrite(filename, e_rgbd21)'''
+                cv2.imwrite(filename, e_rgbd21)
         time_e = time.time()
         print('Speed: %f FPS' % (img_num / (time_e - time_s)))
         print('Test Done!')
@@ -371,7 +371,7 @@ class Solver(object):
                 sal_loss.backward()
                 self.optimizer.step()
 
-                '''if (i + 1) % (self.show_every // self.config.batch_size) == 0:
+                if (i + 1) % (self.show_every // self.config.batch_size) == 0:
                     print('epoch: [%2d/%2d], iter: [%5d/%5d]  ||  Sal : %0.4f  ||sal_final:%0.4f|| edge_loss0:%0.4f' % (
                         epoch, self.config.epoch, i + 1, iter_num, r_sal_loss,sal_final_loss,edge_loss_rgbd0 ))
                     # print('Learning rate: ' + str(self.lr))
@@ -422,7 +422,7 @@ class Solver(object):
                     sal_edge_rgbd = sal_edge_rgbd.sigmoid().data.cpu().numpy().squeeze()
                     sal_edge_rgbd = (sal_edge_rgbd - sal_edge_rgbd.min()) / (sal_edge_rgbd.max() - sal_edge_rgbd.min() + 1e-8)
                     writer.add_image('sal_edge_rgbd', torch.tensor(sal_edge_rgbd), i, dataformats='HW')
-                    grid_image = make_grid(sal_edge[0].clone().cpu().data, 1, normalize=True)'''
+                    grid_image = make_grid(sal_edge[0].clone().cpu().data, 1, normalize=True)
 
 
             if (epoch + 1) % self.config.epoch_save == 0:
