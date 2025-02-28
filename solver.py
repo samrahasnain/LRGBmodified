@@ -105,7 +105,7 @@ class Solver(object):
                     depth = depth.to(device)
 
                 #input = torch.cat((images, depth), dim=0)
-                preds,coarse_sal_rgb,e_rgbd0= self.net(images)
+                preds,coarse_sal_rgb,e_rgbd0,lde_out,rgb_h,rgb_m= self.net(images)
                 #print(depth_1.shape[1])
                 #rgb_1_a=((torch.sum(rgb_1,1)**2)/rgb_1.shape[1]).unsqueeze(0)
                 #print(depth_1.shape)
