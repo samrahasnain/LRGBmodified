@@ -123,31 +123,31 @@ class Solver(object):
                 rgbd_fusion_3_a=(torch.sum(rgbd_fusion_3,1)/rgbd_fusion_3.shape[1]).unsqueeze(0)
                 rgbd_fusion_4_a=(torch.sum(rgbd_fusion_4,1)/rgbd_fusion_4.shape[1]).unsqueeze(0)
                 rgbd_fusion_5_a=(torch.sum(rgbd_fusion_5,1)/rgbd_fusion_5.shape[1]).unsqueeze(0)
-                rgb_1_a = F.interpolate(rgb_1_a, tuple(im_size), mode='bilinear', align_corners=True)
-                rgb_1_a = np.squeeze(torch.sigmoid(rgb_1_a)).cpu().data.numpy()
+                rgb_1_a = F.interpolate(rgb_1_a, tuple(im_size), mode='bilinear', align_corners=True)'''
+                rgb_1_a = np.squeeze(torch.sigmoid(rgb_h)).cpu().data.numpy()
                 rgb_1_a = (rgb_1_a- rgb_1_a.min()) / (rgb_1_a.max() - rgb_1_a.min() + 1e-8)
                 multi_fuse_rgb_1_a = 255 * rgb_1_a
                 #multi_fuse_rgb_1_a=cv2.applyColorMap((multi_fuse_rgb_1_a).astype(np.uint8), cv2.COLORMAP_RAINBOW)
                 filename_rgb_1_a = os.path.join(self.config.test_folder, name[:-4] + '_rgb_1_a.png')
                 cv2.imwrite(filename_rgb_1_a, multi_fuse_rgb_1_a)
 
-                rgb_2_a = F.interpolate(rgb_2_a, tuple(im_size), mode='bilinear', align_corners=True)
-                rgb_2_a = np.squeeze(torch.sigmoid(rgb_2_a)).cpu().data.numpy()
+                #rgb_2_a = F.interpolate(rgb_2_a, tuple(im_size), mode='bilinear', align_corners=True)
+                rgb_2_a = np.squeeze(torch.sigmoid(rgb_m)).cpu().data.numpy()
                 rgb_2_a = (rgb_2_a- rgb_2_a.min()) / (rgb_2_a.max() - rgb_2_a.min() + 1e-8)
                 multi_fuse_rgb_2_a = 255 * rgb_2_a
                 #multi_fuse_rgb_2_a=cv2.applyColorMap((multi_fuse_rgb_2_a).astype(np.uint8), cv2.COLORMAP_RAINBOW)
                 filename_rgb_2_a = os.path.join(self.config.test_folder, name[:-4] + '_rgb_2_a.png')
                 cv2.imwrite(filename_rgb_2_a, multi_fuse_rgb_2_a)
 
-                rgb_3_a = F.interpolate(rgb_3_a, tuple(im_size), mode='bilinear', align_corners=True)
-                rgb_3_a = np.squeeze(torch.sigmoid(rgb_3_a)).cpu().data.numpy()
+                #rgb_3_a = F.interpolate(rgb_3_a, tuple(im_size), mode='bilinear', align_corners=True)
+                rgb_3_a = np.squeeze(torch.sigmoid(lde_out)).cpu().data.numpy()
                 rgb_3_a = (rgb_3_a- rgb_3_a.min()) / (rgb_3_a.max() - rgb_3_a.min() + 1e-8)
                 multi_fuse_rgb_3_a = 255 * rgb_3_a
                 #multi_fuse_rgb_3_a=cv2.applyColorMap((multi_fuse_rgb_3_a).astype(np.uint8), cv2.COLORMAP_RAINBOW)
                 filename_rgb_3_a = os.path.join(self.config.test_folder, name[:-4] + '_rgb_3_a.png')
                 cv2.imwrite(filename_rgb_3_a, multi_fuse_rgb_3_a)
 
-                rgb_4_a = F.interpolate(rgb_4_a, tuple(im_size), mode='bilinear', align_corners=True)
+                '''rgb_4_a = F.interpolate(rgb_4_a, tuple(im_size), mode='bilinear', align_corners=True)
                 rgb_4_a = np.squeeze(torch.sigmoid(rgb_4_a)).cpu().data.numpy()
                 rgb_4_a = (rgb_4_a- rgb_4_a.min()) / (rgb_4_a.max() - rgb_4_a.min() + 1e-8)
                 multi_fuse_rgb_4_a = 255 * rgb_4_a
@@ -282,27 +282,27 @@ class Solver(object):
                 multi_fuse = 255 * pred
                 filename = os.path.join(self.config.test_folder, name[:-4] + '_convtran.png')
                 cv2.imwrite(filename, multi_fuse)
-                '''coarse_sal_rgb= F.interpolate(coarse_sal_rgb, tuple(im_size), mode='bilinear', align_corners=True)
+                #coarse_sal_rgb= F.interpolate(coarse_sal_rgb, tuple(im_size), mode='bilinear', align_corners=True)
                 coarse_sal_rgbs = np.squeeze(torch.sigmoid(coarse_sal_rgb)).cpu().data.numpy()
                 #print(pred.shape)
                 coarse_sal_rgbs = (coarse_sal_rgbs - coarse_sal_rgbs.min()) / (coarse_sal_rgbs.max() - coarse_sal_rgbs.min() + 1e-8)
                 multi_fuse_coarse_sal_rgb = 255 * coarse_sal_rgbs
                 filename_r = os.path.join(self.config.test_folder, name[:-4] + '_coarse_sal_rgb.png')
                 cv2.imwrite(filename_r, multi_fuse_coarse_sal_rgb)
-                coarse_sal_depth= F.interpolate(coarse_sal_depth, tuple(im_size), mode='bilinear', align_corners=True)
+                '''coarse_sal_depth= F.interpolate(coarse_sal_depth, tuple(im_size), mode='bilinear', align_corners=True)
                 coarse_sal_ds = np.squeeze(torch.sigmoid(coarse_sal_depth)).cpu().data.numpy()
                 #print(pred.shape)
                 coarse_sal_ds = (coarse_sal_ds - coarse_sal_ds.min()) / (coarse_sal_ds.max() - coarse_sal_ds.min() + 1e-8)
                 multi_fuse_coarse_sal_ds = 255 * coarse_sal_ds
                 filename_d = os.path.join(self.config.test_folder, name[:-4] + '_coarse_sal_d.png')
                 cv2.imwrite(filename_d, multi_fuse_coarse_sal_ds)
-                e_rgbd2= F.interpolate(e_rgbd2, tuple(im_size), mode='bilinear', align_corners=True)
-                e_rgbd2 = np.squeeze(torch.sigmoid(e_rgbd2)).cpu().data.numpy()
+                e_rgbd2= F.interpolate(e_rgbd2, tuple(im_size), mode='bilinear', align_corners=True)'''
+                e_rgbd2 = np.squeeze(torch.sigmoid(e_rgbd0)).cpu().data.numpy()
                 #print(pred.shape)
                 e_rgbd2 = (e_rgbd2 - e_rgbd2.min()) / (e_rgbd2.max() - e_rgbd2.min() + 1e-8)
                 multi_fuse_e_rgbd2 = 255 * e_rgbd2
                 filename_re = os.path.join(self.config.test_folder, name[:-4] + '_edge2.png')
-                cv2.imwrite(filename_re, multi_fuse_e_rgbd2)'''
+                cv2.imwrite(filename_re, multi_fuse_e_rgbd2)
 
                
                 '''#e_rgbd01 = F.interpolate(e_rgbd01, tuple(im_size), mode='bilinear', align_corners=True)
