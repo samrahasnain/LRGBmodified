@@ -507,8 +507,16 @@ class Solver(object):
                     device = torch.device(self.config.device_id)
                     images = images.to(device)
                     depth = depth.to(device)
-                
+                if self.config.cuda:
+                    torch.cuda.synchronize()
+
+                start_time = time.time()  # Timing starts AFTER synchronization
                 preds, _, _, _, _, _ = self.scripted_net(images)
+                if self.config.cuda:
+                    torch.cuda.synchronize()
+
+                frame_time = time.time() - start_time  # Time for one frame
+                frame_times.append(frame_time)
                 pred = torch.sigmoid(preds).cpu().numpy().squeeze()
                 pred = (pred - pred.min()) / (pred.max() - pred.min() + 1e-8)
                 multi_fuse = (255 * pred).astype(np.uint8)
@@ -517,6 +525,10 @@ class Solver(object):
         
         time_e = time.time()
         print(f'Speed: {img_num / (time_e - time_s):.2f} FPS')
+        # Compute average FPS
+        if len(frame_times) > 1:
+            avg_fps = len(frame_times) / sum(frame_times)
+            print(f'Frame {i+1}/{img_num} - FPS: {avg_fps:.2f}')
         print('Test Done!')
     
     def train(self):
