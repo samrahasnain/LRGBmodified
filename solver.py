@@ -468,7 +468,7 @@ class Solver(object):
         if config.mode == 'test':
             print(f'Loading pre-trained model from {self.config.model}...')
             self.net.load_state_dict(torch.load(self.config.model, map_location=torch.device('cpu')))
-        
+        device = torch.device('cuda' if self.config.cuda else 'cpu')
         if self.config.cuda:
             self.net = self.net.cuda()
         if config.mode == 'train':
