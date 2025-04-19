@@ -465,13 +465,18 @@ class Solver(object):
         
         # Build and script the model
         self.net = build_model(self.config.network, self.config.arch)
-        if config.mode == 'test' or config.mode == 'train':
+        if config.mode == 'test':
             print(f'Loading pre-trained model from {self.config.model}...')
             self.net.load_state_dict(torch.load(self.config.model, map_location=torch.device('cpu')))
         
         if self.config.cuda:
             self.net = self.net.cuda()
-        
+        if config.mode == 'train':
+            if self.config.load != '':
+                print(f"Resuming training from checkpoint: {self.config.load}")
+                checkpoint = torch.load(self.config.load, map_location=device)
+                self.net.load_state_dict(checkpoint['model_state_dict']
+                                 if 'model_state_dict' in checkpoint else checkpoint)
         # Convert to TorchScript for faster inference
         self.scripted_net = torch.jit.script(self.net)
         
