@@ -471,7 +471,7 @@ class Solver(object):
         device = torch.device('cuda' if self.config.cuda else 'cpu')
         if self.config.cuda:
             self.net = self.net.cuda()
-        else
+        else:
             self.net = self.net.to(device)
         if config.mode == 'train':
             if self.config.load != '':
