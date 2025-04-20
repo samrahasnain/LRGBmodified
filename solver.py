@@ -516,7 +516,8 @@ class Solver(object):
                     torch.cuda.synchronize()
 
                 start_time = time.time()  # Timing starts AFTER synchronization
-                preds, _, _, _, _, _ = self.scripted_net(images)
+                #preds, _, _, _, _, _ = self.scripted_net(images)
+                preds, _, _ = self.scripted_net(images)
                 if self.config.cuda:
                     torch.cuda.synchronize()
 
