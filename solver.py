@@ -488,8 +488,8 @@ class Solver(object):
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr, weight_decay=self.wd)
         self.print_network(self.net, 'Conformer based SOD Structure')
 
-    '''def print_network(self, model, name):
-        num_params_t = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    def print_network(self, model, name):
+        '''num_params_t = sum(p.numel() for p in model.parameters() if p.requires_grad)
         num_params = sum(p.numel() for p in model.parameters())
         print(name)
         print(f'Trainable parameters: {num_params_t}')
