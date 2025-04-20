@@ -468,11 +468,12 @@ class Solver(object):
         if config.mode == 'test':
             print(f'Loading pre-trained model from {self.config.model}...')
             self.net.load_state_dict(torch.load(self.config.model, map_location=torch.device('cpu')))
-        device = torch.device('cuda' if self.config.cuda else 'cpu')
+        device = torch.device('cpu')
+        '''device = torch.device('cuda' if self.config.cuda else 'cpu')
         if self.config.cuda:
-            self.net = self.net.cuda()
-        else:
-            self.net = self.net.to(device)
+            self.net = self.net.cuda()'''
+        
+        self.net = self.net.to(device)
         if config.mode == 'train':
             if self.config.load != '':
                 print(f"Resuming training from checkpoint: {self.config.load}")
