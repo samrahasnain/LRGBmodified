@@ -517,7 +517,9 @@ class Solver(object):
                     depth = depth.to(device)
                 if self.config.cuda:
                     torch.cuda.synchronize()
-
+                device = torch.device('cpu')
+                images = images.to(device)
+                depth = depth.to(device)
                 start_time = time.time()  # Timing starts AFTER synchronization
                 #preds, _, _, _, _, _ = self.scripted_net(images)
                 preds, _, _ = self.scripted_net(images)
