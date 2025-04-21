@@ -49,7 +49,7 @@ class ImageDataTrain(data.Dataset):
         return self.sal_num
 
 
-class ImageDataTest(data.Dataset):
+'''class ImageDataTest(data.Dataset):
     def __init__(self, data_root, data_list,image_size):
         self.data_root = data_root
         self.data_list = data_list
@@ -66,6 +66,27 @@ class ImageDataTest(data.Dataset):
         depth = torch.Tensor(depth)
         return {'image': image, 'name': self.image_list[item % self.image_num].split()[0].split('/')[1],
                 'size': im_size, 'depth': depth}
+
+    def __len__(self):
+        return self.image_num'''
+class ImageDataTest(data.Dataset):
+    def __init__(self, data_root, data_list,image_size):
+        self.data_root = data_root
+        self.image_size = image_size
+
+        # Get all image file paths in the folder
+        self.image_list = [f for f in os.listdir(self.data_root) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
+        self.image_num = len(self.image_list)
+
+    def __getitem__(self, item):
+        image_path = os.path.join(self.data_root, self.image_list[item])
+        image, im_size = load_image_test(image_path, self.image_size)
+        image = torch.Tensor(image)
+        return {
+            'image': image,
+            'name': self.image_list[item],
+            'size': im_size
+        }
 
     def __len__(self):
         return self.image_num
