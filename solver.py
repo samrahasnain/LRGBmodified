@@ -469,11 +469,11 @@ class Solver(object):
             print(f'Loading pre-trained model from {self.config.model}...')
             self.net.load_state_dict(torch.load(self.config.model, map_location=torch.device('cpu')))
         device = torch.device('cpu')
-        '''device = torch.device('cuda' if self.config.cuda else 'cpu')
+        device = torch.device('cuda' if self.config.cuda else 'cpu')
         if self.config.cuda:
-            self.net = self.net.cuda()'''
+            self.net = self.net.cuda()
         
-        self.net = self.net.to(device)
+        
         if config.mode == 'train':
             if self.config.load != '':
                 print(f"Resuming training from checkpoint: {self.config.load}")
@@ -489,13 +489,13 @@ class Solver(object):
         self.print_network(self.net, 'Conformer based SOD Structure')
 
     def print_network(self, model, name):
-        '''num_params_t = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        num_params_t = sum(p.numel() for p in model.parameters() if p.requires_grad)
         num_params = sum(p.numel() for p in model.parameters())
         print(name)
         print(f'Trainable parameters: {num_params_t}')
         print(f'Total parameters: {num_params}')
         print(f'FLOPs: {count_model_flops(model)}')
-        print(f'Params: {count_model_params(model)}')'''
+        print(f'Params: {count_model_params(model)}')
 
     def test(self):
         print('Testing...')
@@ -511,20 +511,18 @@ class Solver(object):
             )
             
             with torch.no_grad():
-                '''if self.config.cuda:
+                if self.config.cuda:
                     device = torch.device(self.config.device_id)
                     images = images.to(device)
                     depth = depth.to(device)
                 if self.config.cuda:
-                    torch.cuda.synchronize()'''
-                device = torch.device('cpu')
-                images = images.to(device)
-                depth = depth.to(device)
+                    torch.cuda.synchronize()
+               
                 start_time = time.time()  # Timing starts AFTER synchronization
                 #preds, _, _, _, _, _ = self.scripted_net(images)
                 preds, _, _ = self.scripted_net(images)
-                '''if self.config.cuda:
-                    torch.cuda.synchronize()'''
+                if self.config.cuda:
+                    torch.cuda.synchronize()
 
                 frame_time = time.time() - start_time  # Time for one frame
                 print(frame_time)
