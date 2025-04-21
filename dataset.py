@@ -85,7 +85,8 @@ class ImageDataTest(data.Dataset):
         return {
             'image': image,
             'name': self.image_list[item],
-            'size': im_size
+            'size': im_size,
+            'depth': image,
         }
 
     def __len__(self):
