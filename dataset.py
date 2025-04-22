@@ -49,7 +49,7 @@ class ImageDataTrain(data.Dataset):
         return self.sal_num
 
 
-'''class ImageDataTest(data.Dataset):
+class ImageDataTest(data.Dataset):
     def __init__(self, data_root, data_list,image_size):
         self.data_root = data_root
         self.data_list = data_list
@@ -68,8 +68,8 @@ class ImageDataTrain(data.Dataset):
                 'size': im_size, 'depth': depth}
 
     def __len__(self):
-        return self.image_num'''
-class ImageDataTest(data.Dataset):
+        return self.image_num
+'''class ImageDataTest(data.Dataset):
     def __init__(self, data_root, data_list,image_size):
         self.data_root = data_root
         self.image_size = image_size
@@ -90,7 +90,7 @@ class ImageDataTest(data.Dataset):
         }
 
     def __len__(self):
-        return self.image_num
+        return self.image_num'''
 
 
 def get_loader(config, mode='train', pin=True):
