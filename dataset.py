@@ -61,7 +61,7 @@ class ImageDataTest(data.Dataset):
 
     def __getitem__(self, item):
         image, im_size = load_image_test(os.path.join(self.data_root, self.image_list[item].split()[0]), self.image_size)
-        depth, de_size = load_image_test(os.path.join(self.data_root, self.image_list[item].split()[1]), self.image_size)
+        depth, de_size = load_image_test(os.path.join(self.data_root, self.image_list[item].split()[0]), self.image_size)
         image = torch.Tensor(image)
         depth = torch.Tensor(depth)
         return {'image': image, 'name': self.image_list[item % self.image_num].split()[0].split('/')[1],
