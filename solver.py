@@ -509,7 +509,7 @@ class Solver(object):
                 np.asarray(data_batch['size']),
                 data_batch['depth']
             )
-            
+            print(name)
             with torch.no_grad():
                 if self.config.cuda:
                     device = torch.device(self.config.device_id)
