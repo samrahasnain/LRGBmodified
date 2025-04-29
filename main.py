@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     # Hyper-parameters
     parser.add_argument('--n_color', type=int, default=3)
-    parser.add_argument('--lr', type=float, default=0.000005)  # Learning rate resnet:4e-4
+    parser.add_argument('--lr', type=float, default=0.00005)  # Learning rate resnet:4e-4
     parser.add_argument('--wd', type=float, default=0.0005)  # Weight decay
     parser.add_argument('--momentum', type=float, default=0.99)
     parser.add_argument('--image_size', type=int, default=320)
