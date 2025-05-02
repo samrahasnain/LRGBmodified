@@ -126,9 +126,9 @@ class GDELayer(nn.Module):
         k=1
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
-        self.convH=nn.Sequential(nn.Conv2d(320,160,1,1),self.relu,nn.Conv2d(160,1,1,1))
-        self.convM=nn.Sequential(nn.Conv2d(96,32,1,1),self.relu,nn.Conv2d(32,1,1,1))
-        self.convL=nn.Sequential(nn.Conv2d(32,24,1,1),self.relu,nn.Conv2d(24,1,1,1))
+        self.convH=nn.Sequential(nn.Conv2d(320,160,3,1,1),self.relu,nn.Conv2d(160,1,1,1))
+        self.convM=nn.Sequential(nn.Conv2d(96,32,3,1,1),self.relu,nn.Conv2d(32,1,1,1))
+        #self.convL=nn.Sequential(nn.Conv2d(32,24,3,1,1),self.relu,nn.Conv2d(24,1,1,1))
         
         #self.conv384=nn.Sequential(nn.Conv2d(576,192,1,1),self.relu,nn.Conv2d(192,1,1,1))
         self.upsampling= nn.ConvTranspose2d(k,k, kernel_size=4, stride=2 , padding=1) # 10x10 to 20x20
