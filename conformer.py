@@ -104,8 +104,12 @@ class LDELayer(nn.Module):
 class CoarseLayer(nn.Module):
     def __init__(self):
         super(CoarseLayer, self).__init__()
-        self.relu = nn.ReLU()
-        self.conv_r = nn.Sequential(nn.Conv2d(320,160,1,1),self.relu,nn.Conv2d(160, 1, 1, 1))
+        self.conv_r = nn.Sequential(
+    nn.Conv2d(320, 160, kernel_size=3, stride=1, padding=1),  # maintains input size
+    nn.BatchNorm2d(160),
+    nn.ReLU(inplace=True),
+    nn.Conv2d(160, 1, kernel_size=1, stride=1)
+)
         
         
 
