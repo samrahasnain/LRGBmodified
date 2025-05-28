@@ -1,121 +1,104 @@
-from torch import nn
 import torch
-try:
-    from torchvision.models.utils import load_state_dict_from_url # torchvision 0.4+
-except ModuleNotFoundError:
-    try:
-        from torch.hub import load_state_dict_from_url # torch 1.x
-    except ModuleNotFoundError:
-        from torch.utils.model_zoo import load_url as load_state_dict_from_url # torch 0.4.1
+import torch.nn as nn
+from blocks import ShuffleV2Block
 
+class ShuffleNetV2(nn.Module):
+    def __init__(self, input_size=224, n_class=1000, model_size='1.5x'):
+        super(ShuffleNetV2, self).__init__()
+        print('model size is ', model_size)
 
-model_urls = {
-    'mobilenet_v2': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
-}
-class ConvBNReLU(nn.Sequential):
-    def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, dilation=1):
-        padding = (kernel_size - 1) // 2
-        if dilation != 1:
-            padding = dilation
-        super(ConvBNReLU, self).__init__(
-            nn.Conv2d(in_planes, out_planes, kernel_size, stride, padding, groups=groups, dilation=dilation, bias=False),
-            nn.BatchNorm2d(out_planes),
-            nn.ReLU6(inplace=True)
-        )
-
-
-class InvertedResidual(nn.Module):
-    def __init__(self, inp, oup, stride, expand_ratio, dilation=1):
-        super(InvertedResidual, self).__init__()
-        self.stride = stride
-        assert stride in [1, 2]
-
-        hidden_dim = int(round(inp * expand_ratio))
-        self.use_res_connect = self.stride == 1 and inp == oup
-
-        layers = []
-        if expand_ratio != 1:
-            # pw
-            layers.append(ConvBNReLU(inp, hidden_dim, kernel_size=1))
-        layers.extend([
-            # dw
-            ConvBNReLU(hidden_dim, hidden_dim, stride=stride, groups=hidden_dim, dilation=dilation),
-            # pw-linear
-            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
-            nn.BatchNorm2d(oup),
-        ])
-        self.conv = nn.Sequential(*layers)
-
-    def forward(self, x):
-        if self.use_res_connect:
-            return x + self.conv(x)
+        self.stage_repeats = [4, 8, 4]
+        self.model_size = model_size
+        if model_size == '0.5x':
+            self.stage_out_channels = [-1, 24, 48, 96, 192, 1024]
+        elif model_size == '1.0x':
+            self.stage_out_channels = [-1, 24, 116, 232, 464, 1024]
+        elif model_size == '1.5x':
+            self.stage_out_channels = [-1, 24, 176, 352, 704, 1024]
+        elif model_size == '2.0x':
+            self.stage_out_channels = [-1, 24, 244, 488, 976, 2048]
         else:
-            return self.conv(x)
-
-
-class MobileNetV2(nn.Module):
-    def __init__(self, pretrained=None, num_classes=1000, width_mult=1.0):
-        super(MobileNetV2, self).__init__()
-        block = InvertedResidual
-        input_channel = 32
-        last_channel = 1280
-        inverted_residual_setting = [
-            # t, c, n, s, d
-            [1, 16, 1, 1, 1],
-            [6, 24, 2, 2, 1],
-            [6, 32, 3, 2, 1],
-            [6, 64, 4, 2, 1],
-            [6, 96, 3, 1, 1],
-            [6, 160, 3, 2, 1],
-            [6, 320, 1, 1, 1],
-        ]
+            raise NotImplementedError
 
         # building first layer
-        input_channel = int(input_channel * width_mult)
-        self.last_channel = int(last_channel * max(1.0, width_mult))
-        features = [ConvBNReLU(3, input_channel, stride=2)]
-        # building inverted residual blocks
-        for t, c, n, s, d in inverted_residual_setting:
-            output_channel = int(c * width_mult)
-            for i in range(n):
-                stride = s if i == 0 else 1
-                dilation = d if i == 0 else 1
-                features.append(block(input_channel, output_channel, stride, expand_ratio=t, dilation=d))
-                input_channel = output_channel
-        # building last several layers
-        features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
-        # make it nn.Sequential
-        self.features = nn.Sequential(*features)
-        
+        input_channel = self.stage_out_channels[1]
+        self.first_conv = nn.Sequential(
+            nn.Conv2d(3, input_channel, 3, 2, 1, bias=False),
+            nn.BatchNorm2d(input_channel),
+            nn.ReLU(inplace=True),
+        )
 
-        # weight initialization
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out')
-                if m.bias is not None:
-                    nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.ones_(m.weight)
-                nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.zeros_(m.bias)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+        self.features = []
+        for idxstage in range(len(self.stage_repeats)):
+            numrepeat = self.stage_repeats[idxstage]
+            output_channel = self.stage_out_channels[idxstage+2]
+
+            for i in range(numrepeat):
+                if i == 0:
+                    self.features.append(ShuffleV2Block(input_channel, output_channel, 
+                                                mid_channels=output_channel // 2, ksize=3, stride=2))
+                else:
+                    self.features.append(ShuffleV2Block(input_channel // 2, output_channel, 
+                                                mid_channels=output_channel // 2, ksize=3, stride=1))
+
+                input_channel = output_channel
+                
+        self.features = nn.Sequential(*self.features)
+
+        self.conv_last = nn.Sequential(
+            nn.Conv2d(input_channel, self.stage_out_channels[-1], 1, 1, 0, bias=False),
+            nn.BatchNorm2d(self.stage_out_channels[-1]),
+            nn.ReLU(inplace=True)
+        )
+        self.globalpool = nn.AvgPool2d(7)
+        if self.model_size == '2.0x':
+            self.dropout = nn.Dropout(0.2)
+        self.classifier = nn.Sequential(nn.Linear(self.stage_out_channels[-1], n_class, bias=False))
+        self._initialize_weights()
 
     def forward(self, x):
-        res = []
-        for idx, m in enumerate(self.features):
-            x = m(x)
-            if idx in [1,3,6,13,17]:
-                res.append(x)
-        return res
+        x = self.first_conv(x)
+        x = self.maxpool(x)
+        x = self.features(x)
+        x = self.conv_last(x)
 
+        x = self.globalpool(x)
+        if self.model_size == '2.0x':
+            x = self.dropout(x)
+        x = x.contiguous().view(-1, self.stage_out_channels[-1])
+        x = self.classifier(x)
+        return x
 
-def mobilenet_v2(pretrained=True, progress=True, **kwargs):
-    model = MobileNetV2(**kwargs)
-    if pretrained:
-        state_dict = load_state_dict_from_url(model_urls['mobilenet_v2'],
-                                              progress=progress)
-        print("loading imagenet pretrained mobilenetv2")
-        model.load_state_dict(state_dict, strict=False)
-        print("loaded imagenet pretrained mobilenetv2")
-    return model
+    def _initialize_weights(self):
+        for name, m in self.named_modules():
+            if isinstance(m, nn.Conv2d):
+                if 'first' in name:
+                    nn.init.normal_(m.weight, 0, 0.01)
+                else:
+                    nn.init.normal_(m.weight, 0, 1.0 / m.weight.shape[1])
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0001)
+                nn.init.constant_(m.running_mean, 0)
+            elif isinstance(m, nn.BatchNorm1d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0001)
+                nn.init.constant_(m.running_mean, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+if __name__ == "__main__":
+    model = ShuffleNetV2()
+    # print(model)
+
+    test_data = torch.rand(5, 3, 224, 224)
+    test_outputs = model(test_data)
+    print(test_outputs.size())
