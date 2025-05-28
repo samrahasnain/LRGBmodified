@@ -3,7 +3,7 @@ import torch.nn as nn
 from blocks import ShuffleV2Block
 
 class ShuffleNetV2(nn.Module):
-    def __init__(self, input_size=224, n_class=1000, model_size='1.5x'):
+    def __init__(self, input_size=320, n_class=1000, model_size='0.5x'):
         super(ShuffleNetV2, self).__init__()
         print('model size is ', model_size)
 
@@ -65,6 +65,8 @@ class ShuffleNetV2(nn.Module):
         x = self.conv_last(x)
 
         x = self.globalpool(x)
+        for i in range(len(x):
+            print(x[i].shape)
         if self.model_size == '2.0x':
             x = self.dropout(x)
         x = x.contiguous().view(-1, self.stage_out_channels[-1])
