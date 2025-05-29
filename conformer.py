@@ -11,7 +11,7 @@ import numpy as np
 import time
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
-from MobileNetV2 import mobilenet_v2
+#from MobileNetV2 import mobilenet_v2
 writer = SummaryWriter('log/run' + time.strftime("%d-%m"))
 import torch
 import torch.nn as nn
