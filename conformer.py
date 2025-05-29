@@ -276,17 +276,19 @@ class JL_DCF(nn.Module):
 
 
 # --- Helper Functions ---
-def channel_split(x, ratio=0.5):
+def channel_split(x: torch.Tensor, ratio: float = 0.5):
     c = x.size(1)
     c1 = int(c * ratio)
     return x[:, :c1, :, :], x[:, c1:, :, :]
 
-def channel_shuffle(x, groups):
+
+def channel_shuffle(x: torch.Tensor, groups: int):
     batchsize, num_channels, height, width = x.size()
     channels_per_group = num_channels // groups
     x = x.view(batchsize, groups, channels_per_group, height, width)
     x = x.transpose(1, 2).contiguous()
     return x.view(batchsize, -1, height, width)
+
 
 # --- InvertedResidual Block ---
 class InvertedResidual(nn.Module):
