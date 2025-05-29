@@ -292,7 +292,7 @@ def channel_shuffle(x: torch.Tensor, groups: int):
 
 # --- InvertedResidual Block ---
 class InvertedResidual(nn.Module):
-    def __init__(self, inp, oup, stride):
+    def __init__(self, inp: int, oup: int, stride: int):
         super().__init__()
         self.stride = stride
         branch_features = oup // 2
@@ -300,8 +300,8 @@ class InvertedResidual(nn.Module):
         assert self.stride in [1, 2]
         if self.stride == 1:
             assert inp == oup
-
-        if self.stride == 2:
+            self.branch1 = nn.Identity()  # Dummy branch1 for TorchScript
+        else:
             self.branch1 = nn.Sequential(
                 nn.Conv2d(inp, inp, 3, stride=2, padding=1, groups=inp, bias=False),
                 nn.BatchNorm2d(inp),
@@ -328,6 +328,7 @@ class InvertedResidual(nn.Module):
         else:
             out = torch.cat((self.branch1(x), self.branch2(x)), 1)
         return channel_shuffle(out, 2)
+
 
 # --- Custom ShuffleNetV2 Backbone ---
 class ShuffleNetV2Custom(nn.Module):
